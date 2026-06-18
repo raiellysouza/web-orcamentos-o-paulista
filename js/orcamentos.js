@@ -1,3 +1,5 @@
+let itensOrcamento = [];
+
 function renderNovoOrcamento() {
 
     const content = document.querySelector(".content");
@@ -12,24 +14,120 @@ function renderNovoOrcamento() {
 
             <h3>Cliente</h3>
 
-            <input type="text" placeholder="Nome do Cliente">
+            <input id="cliente" type="text" placeholder="Nome do Cliente">
 
-            <input type="text" placeholder="Telefone">
+            <input id="telefone" type="text" placeholder="Telefone">
 
             <h3>Veículo</h3>
 
-            <input type="text" placeholder="Modelo">
+            <input id="veiculo" type="text" placeholder="Modelo">
 
-            <input type="text" placeholder="Placa">
+            <input id="placa" type="text" placeholder="Placa">
 
-            <input type="number" placeholder="Ano">
+            <input id="ano" type="number" placeholder="Ano">
 
-            <br><br>
+            <hr>
 
-            <button>
+            <h3>Adicionar Item</h3>
+
+            <input id="descricaoItem" type="text" placeholder="Descrição">
+
+            <select id="categoriaItem">
+                <option value="Peça">Peça</option>
+                <option value="Serviço">Serviço</option>
+            </select>
+
+            <input id="valorItem" type="number" placeholder="Valor">
+
+            <button id="btnAdicionarItem">
+                Adicionar Item
+            </button>
+
+            <div id="listaItens"></div>
+
+            <div id="resumoValores">
+                <h3>Total: R$ 0,00</h3>
+            </div>
+
+            <button id="btnSalvar">
                 Salvar Orçamento
             </button>
 
         </div>
+    `;
+
+    configurarEventosItens();
+}
+
+function configurarEventosItens() {
+
+    const btnAdicionar = document.getElementById("btnAdicionarItem");
+
+    btnAdicionar.addEventListener("click", () => {
+
+        const descricao = document.getElementById("descricaoItem").value;
+        const categoria = document.getElementById("categoriaItem").value;
+        const valor = parseFloat(
+            document.getElementById("valorItem").value
+        );
+
+        if (!descricao || isNaN(valor)) {
+            alert("Preencha descrição e valor.");
+            return;
+        }
+
+        itensOrcamento.push({
+            descricao,
+            categoria,
+            valor
+        });
+
+        atualizarListaItens();
+
+        document.getElementById("descricaoItem").value = "";
+        document.getElementById("valorItem").value = "";
+    });
+}
+
+function atualizarListaItens() {
+
+    const lista = document.getElementById("listaItens");
+
+    let html = `
+        <table class="tabela-itens">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    let total = 0;
+
+    itensOrcamento.forEach(item => {
+
+        total += item.valor;
+
+        html += `
+            <tr>
+                <td>${item.descricao}</td>
+                <td>${item.categoria}</td>
+                <td>R$ ${item.valor.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    lista.innerHTML = html;
+
+    document.getElementById("resumoValores").innerHTML = `
+        <h3>Total: R$ ${total.toFixed(2)}</h3>
     `;
 }

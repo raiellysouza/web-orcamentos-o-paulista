@@ -115,3 +115,31 @@ header h1{
     padding:12px 20px;
     cursor:pointer;
 }
+
+select{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+}
+
+.tabela-itens{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+.tabela-itens th,
+.tabela-itens td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+.tabela-itens th{
+    background:#f3f4f6;
+}
+
+#resumoValores{
+    margin-top:20px;
+    font-size:20px;
+    font-weight:bold;
+}
