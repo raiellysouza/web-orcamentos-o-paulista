@@ -3,52 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de orçamentos automotivos para a Oficina O Paulista - criar, gerenciar e emitir orçamentos.">
     <title>O Paulista Orçamentos</title>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+    <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
+
     <div class="container">
 
-        <aside class="sidebar">
+        <aside class="sidebar" aria-label="Menu lateral">
 
             <div class="logo">
                 <h2>O Paulista</h2>
                 <span>Orçamentos</span>
             </div>
 
-            <nav>
-                <button id="btnDashboard">Dashboard</button>
-                <button id="btnNovo">Novo Orçamento</button>
-                <button id="btnAndamento">Em Andamento</button>
-                <button id="btnFinalizados">Finalizados</button>    
+            <nav role="navigation" aria-label="Menu principal">
+                <button id="btnDashboard" type="button">Dashboard</button>
+                <button id="btnNovo" type="button">Novo Orçamento</button>
+                <button id="btnAndamento" type="button">Em Andamento</button>
+                <button id="btnFinalizados" type="button">Finalizados</button>    
             </nav>
 
         </aside>
 
-        <main class="content">
+        <main id="main-content" class="content">
 
             <header>
                 <h1>Dashboard</h1>
                 <p>Gerencie os orçamentos da oficina.</p>
             </header>
 
-            <section class="cards">
+            <section class="cards" aria-label="Resumo dos orçamentos">
 
                 <div class="card">
                     <h3>Total</h3>
-                    <span>0</span>
+                    <span aria-live="polite">0</span>
                 </div>
 
                 <div class="card">
                     <h3>Em Andamento</h3>
-                    <span>0</span>
+                    <span aria-live="polite">0</span>
                 </div>
 
                 <div class="card">
                     <h3>Finalizados</h3>
-                    <span>0</span>
+                    <span aria-live="polite">0</span>
                 </div>
 
             </section>
@@ -68,6 +71,7 @@
 
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     <script src="js/app.js"></script>
     <script src="js/orcamentos.js"></script>
 </body>

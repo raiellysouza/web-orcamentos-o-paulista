@@ -1,5 +1,39 @@
 let itensOrcamento = [];
 
+function escapeHtml(str) {
+    if (str === undefined || str === null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/`/g, '&#96;');
+}
+
+function loadOrcamentos() {
+    try {
+        return JSON.parse(localStorage.getItem('orcamentos')) || [];
+    } catch (e) {
+        console.warn('Erro ao ler orçamentos do localStorage:', e);
+        return [];
+    }
+}
+
+function sanitizeFilename(name) {
+    const safe = escapeHtml(name || '').replace(/[^a-z0-9-_\.]/gi, '_');
+    return (safe || 'orcamento').slice(0, 50);
+}
+
+function ensurePageSpace(doc, y, lineHeight = 8, bottomMargin = 20) {
+    const pageHeight = doc.internal.pageSize.height || 297;
+    if (y + lineHeight + bottomMargin > pageHeight) {
+        doc.addPage();
+        return 20;
+    }
+    return y;
+}
+
 function renderNovoOrcamento() {
 
     const content = document.querySelector(".content");
@@ -66,6 +100,8 @@ function configurarEventosItens() {
 
     const btnAdicionar = document.getElementById("btnAdicionarItem");
 
+    if (!btnAdicionar) return;
+
     btnAdicionar.addEventListener("click", () => {
 
         const descricao = document.getElementById("descricaoItem").value;
@@ -97,6 +133,7 @@ function configurarEventosItens() {
 function atualizarListaItens() {
 
     const lista = document.getElementById("listaItens");
+    if (!lista) return;
 
     let html = `
         <table class="tabela-itens">
@@ -118,8 +155,8 @@ function atualizarListaItens() {
 
         html += `
             <tr>
-                <td>${item.descricao}</td>
-                <td>${item.categoria}</td>
+                <td>${escapeHtml(item.descricao)}</td>
+                <td>${escapeHtml(item.categoria)}</td>
                 <td>R$ ${item.valor.toFixed(2)}</td>
             </tr>
         `;
@@ -132,15 +169,18 @@ function atualizarListaItens() {
 
     lista.innerHTML = html;
 
-    document.getElementById("resumoValores").innerHTML = `
-    <h3>Total: R$ ${total.toLocaleString(
-        "pt-BR",
-        {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }
-    )}</h3>
-`;
+    const resumo = document.getElementById("resumoValores");
+    if (resumo) {
+        resumo.innerHTML = `
+        <h3>Total: R$ ${total.toLocaleString(
+            "pt-BR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        )}</h3>
+    `;
+    }
 }
 
 //evento de salvar orçamento
@@ -148,6 +188,7 @@ function atualizarListaItens() {
 function configurarEventoSalvar() {
 
     const btnSalvar = document.getElementById("btnSalvar");
+    if (!btnSalvar) return;
 
     btnSalvar.addEventListener("click", salvarOrcamento);
 
@@ -200,10 +241,7 @@ function salvarOrcamento() {
         total
     };
 
-    const orcamentos =
-        JSON.parse(
-            localStorage.getItem("orcamentos")
-        ) || [];
+    const orcamentos = loadOrcamentos();
 
     orcamentos.push(orcamento);
 
@@ -225,9 +263,7 @@ function renderOrcamentosEmAndamento() {
 
     const content = document.querySelector(".content");
 
-    const orcamentos =
-        JSON.parse(localStorage.getItem("orcamentos"))
-        || [];
+    const orcamentos = loadOrcamentos();
 
     const emAndamento = orcamentos.filter(
         orcamento => orcamento.status === "Em Andamento"
@@ -255,10 +291,10 @@ function renderOrcamentosEmAndamento() {
             html += `
                 <div class="card-lista">
 
-                    <h3>${orcamento.cliente}</h3>
+                    <h3>${escapeHtml(orcamento.cliente)}</h3>
 
                     <p>
-                        ${orcamento.veiculo}
+                        ${escapeHtml(orcamento.veiculo)}
                     </p>
 
                     <p>
@@ -297,9 +333,7 @@ function finalizarOrcamento(id) {
         return;
     }
 
-    const orcamentos =
-        JSON.parse(localStorage.getItem("orcamentos"))
-        || [];
+    const orcamentos = loadOrcamentos();
 
     const atualizado = orcamentos.map(orcamento => {
 
@@ -324,9 +358,7 @@ function finalizarOrcamento(id) {
 
 function visualizarOrcamento(id) {
 
-    const orcamentos =
-        JSON.parse(localStorage.getItem("orcamentos"))
-        || [];
+    const orcamentos = loadOrcamentos();
 
     const orcamento = orcamentos.find(
         item => item.id === id
@@ -343,8 +375,8 @@ function visualizarOrcamento(id) {
 
         itensHTML += `
             <tr>
-                <td>${item.descricao}</td>
-                <td>${item.categoria}</td>
+                <td>${escapeHtml(item.descricao)}</td>
+                <td>${escapeHtml(item.categoria)}</td>
                 <td>R$ ${item.valor.toFixed(2)}</td>
             </tr>
         `;
@@ -364,9 +396,9 @@ function visualizarOrcamento(id) {
 
                 <h3>Cliente</h3>
 
-                <p><strong>Nome:</strong> ${orcamento.cliente}</p>
+                <p><strong>Nome:</strong> ${escapeHtml(orcamento.cliente)}</p>
 
-                <p><strong>Telefone:</strong> ${orcamento.telefone}</p>
+                <p><strong>Telefone:</strong> ${escapeHtml(orcamento.telefone)}</p>
 
             </div>
 
@@ -374,11 +406,11 @@ function visualizarOrcamento(id) {
 
                 <h3>Veículo</h3>
 
-                <p><strong>Modelo:</strong> ${orcamento.veiculo}</p>
+                <p><strong>Modelo:</strong> ${escapeHtml(orcamento.veiculo)}</p>
 
-                <p><strong>Placa:</strong> ${orcamento.placa}</p>
+                <p><strong>Placa:</strong> ${escapeHtml(orcamento.placa)}</p>
 
-                <p><strong>Ano:</strong> ${orcamento.ano}</p>
+                <p><strong>Ano:</strong> ${escapeHtml(orcamento.ano)}</p>
 
             </div>
 
@@ -423,9 +455,13 @@ function visualizarOrcamento(id) {
     </button>
 
     <button
+        onclick="gerarPDF(${orcamento.id})">
+        Gerar PDF
+    </button>
+
+    <button
         onclick="excluirOrcamento(${orcamento.id})"
-        class="btn-excluir"
-    >
+        class="btn-excluir">
         Excluir
     </button>
 
@@ -442,9 +478,7 @@ function renderDashboard() {
 
     const content = document.querySelector(".content");
 
-    const orcamentos =
-        JSON.parse(localStorage.getItem("orcamentos"))
-        || [];
+    const orcamentos = loadOrcamentos();
 
     const totalOrcamentos = orcamentos.length;
 
@@ -509,9 +543,7 @@ function renderOrcamentosFinalizados() {
 
     const content = document.querySelector(".content");
 
-    const orcamentos =
-        JSON.parse(localStorage.getItem("orcamentos"))
-        || [];
+    const orcamentos = loadOrcamentos();
 
     const finalizados = orcamentos.filter(
         item => item.status === "Finalizado"
@@ -539,10 +571,10 @@ function renderOrcamentosFinalizados() {
             html += `
                 <div class="card-lista">
 
-                    <h3>${orcamento.cliente}</h3>
+                    <h3>${escapeHtml(orcamento.cliente)}</h3>
 
                     <p>
-                        ${orcamento.veiculo}
+                        ${escapeHtml(orcamento.veiculo)}
                     </p>
 
                     <p>
@@ -581,9 +613,7 @@ function excluirOrcamento(id) {
         return;
     }
 
-    const orcamentos =
-        JSON.parse(localStorage.getItem("orcamentos"))
-        || [];
+    const orcamentos = loadOrcamentos();
 
     const atualizados = orcamentos.filter(
         item => item.id !== id
@@ -595,4 +625,116 @@ function excluirOrcamento(id) {
     );
 
     renderDashboard();
+}
+
+// Gerar PDF do orçamento
+
+async function gerarPDF(id) {
+
+    const orcamentos = loadOrcamentos();
+
+    const orcamento = orcamentos.find(
+        item => item.id === id
+    );
+
+    if (!orcamento) {
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF();
+
+    let y = 20;
+
+    doc.setFontSize(18);
+    doc.text("O PAULISTA", 20, y);
+
+    y += 10;
+
+    doc.setFontSize(14);
+    doc.text("ORÇAMENTO AUTOMOTIVO", 20, y);
+
+    y += 20;
+
+    doc.setFontSize(12);
+
+    doc.text(
+        `Cliente: ${orcamento.cliente}`,
+        20,
+        y
+    );
+
+    y += 8;
+
+    doc.text(
+        `Telefone: ${orcamento.telefone}`,
+        20,
+        y
+    );
+
+    y += 15;
+
+    doc.text(
+        `Veículo: ${orcamento.veiculo}`,
+        20,
+        y
+    );
+
+    y += 8;
+
+    doc.text(
+        `Placa: ${orcamento.placa}`,
+        20,
+        y
+    );
+
+    y += 8;
+
+    doc.text(
+        `Ano: ${orcamento.ano}`,
+        20,
+        y
+    );
+
+    y += 20;
+
+    doc.text("ITENS", 20, y);
+
+    y += 10;
+
+    orcamento.itens.forEach(item => {
+
+        y = ensurePageSpace(doc, y);
+
+        doc.text(
+            `${item.descricao} - ${item.categoria}`,
+            20,
+            y
+        );
+
+        doc.text(
+            `R$ ${item.valor.toFixed(2)}`,
+            150,
+            y
+        );
+
+        y += 8;
+    });
+
+    y += 15;
+
+    y = ensurePageSpace(doc, y);
+
+    doc.setFontSize(14);
+
+    doc.text(
+        `TOTAL: R$ ${orcamento.total.toFixed(2)}`,
+        20,
+        y
+    );
+
+    const filename = `orcamento-${sanitizeFilename(orcamento.cliente)}.pdf`;
+
+    doc.save(filename);
 }

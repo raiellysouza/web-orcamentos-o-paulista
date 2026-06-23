@@ -10,23 +10,24 @@ const btnAndamento =
 const btnFinalizados =
     document.getElementById("btnFinalizados");
 
+function safeAddListener(element, handler) {
+    if (!element) return;
+    element.addEventListener('click', handler);
+}
 
-btnDashboard.addEventListener("click", () => {
+safeAddListener(btnDashboard, () => {
     renderDashboard();
 });
 
-
-btnNovo.addEventListener("click", () => {
+safeAddListener(btnNovo, () => {
     renderNovoOrcamento();
 });
 
-
-btnAndamento.addEventListener("click", () => {
+safeAddListener(btnAndamento, () => {
     renderOrcamentosEmAndamento();
 });
 
-
-btnFinalizados.addEventListener("click", () => {
+safeAddListener(btnFinalizados, () => {
     renderOrcamentosFinalizados();
 });
 
