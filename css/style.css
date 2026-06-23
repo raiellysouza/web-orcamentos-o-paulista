@@ -193,3 +193,13 @@ select{
     padding:12px 20px;
     cursor:pointer;
 }
+
+.btn-excluir{
+    background:#dc2626;
+    color:white;
+    border:none;
+}
+
+.btn-excluir:hover{
+    opacity:0.9;
+}

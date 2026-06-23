@@ -130,9 +130,9 @@ function atualizarListaItens() {
         </table>
     `;
 
-lista.innerHTML = html;
+    lista.innerHTML = html;
 
-document.getElementById("resumoValores").innerHTML = `
+    document.getElementById("resumoValores").innerHTML = `
     <h3>Total: R$ ${total.toLocaleString(
         "pt-BR",
         {
@@ -412,20 +412,28 @@ function visualizarOrcamento(id) {
 
             </div>
 
-            <div class="acoes-detalhes">
+           <div class="acoes-detalhes">
 
-                <button onclick="renderOrcamentosEmAndamento()">
-                    Voltar
-                </button>
+    <button onclick="renderDashboard()">
+        Voltar
+    </button>
 
-                <button onclick="finalizarOrcamento(${orcamento.id})">
-                    Finalizar
-                </button>
+    <button onclick="finalizarOrcamento(${orcamento.id})">
+        Finalizar
+    </button>
 
-            </div>
+    <button
+        onclick="excluirOrcamento(${orcamento.id})"
+        class="btn-excluir"
+    >
+        Excluir
+    </button>
+
+</div>
 
         </div>
     `;
+    renderOrcamentosEmAndamento()
 }
 
 //dashboard
@@ -495,4 +503,96 @@ function renderDashboard() {
 
         </section>
     `;
+}
+
+function renderOrcamentosFinalizados() {
+
+    const content = document.querySelector(".content");
+
+    const orcamentos =
+        JSON.parse(localStorage.getItem("orcamentos"))
+        || [];
+
+    const finalizados = orcamentos.filter(
+        item => item.status === "Finalizado"
+    );
+
+    let html = `
+        <header>
+            <h1>Orçamentos Finalizados</h1>
+            <p>Histórico de orçamentos concluídos.</p>
+        </header>
+    `;
+
+    if (finalizados.length === 0) {
+
+        html += `
+            <div class="card-lista">
+                Nenhum orçamento finalizado.
+            </div>
+        `;
+
+    } else {
+
+        finalizados.forEach(orcamento => {
+
+            html += `
+                <div class="card-lista">
+
+                    <h3>${orcamento.cliente}</h3>
+
+                    <p>
+                        ${orcamento.veiculo}
+                    </p>
+
+                    <p>
+                        Total: R$
+                        ${orcamento.total.toLocaleString(
+                "pt-BR",
+                {
+                    minimumFractionDigits: 2
+                }
+            )}
+                    </p>
+
+                    <button
+                        onclick="visualizarOrcamento(${orcamento.id})"
+                    >
+                        Ver Detalhes
+                    </button>
+
+                </div>
+            `;
+        });
+    }
+
+    content.innerHTML = html;
+}
+
+// Excluir orçamento
+
+function excluirOrcamento(id) {
+
+    const confirmar = confirm(
+        "Deseja realmente excluir este orçamento?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    const orcamentos =
+        JSON.parse(localStorage.getItem("orcamentos"))
+        || [];
+
+    const atualizados = orcamentos.filter(
+        item => item.id !== id
+    );
+
+    localStorage.setItem(
+        "orcamentos",
+        JSON.stringify(atualizados)
+    );
+
+    renderDashboard();
 }
