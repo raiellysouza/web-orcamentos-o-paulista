@@ -60,6 +60,8 @@ function renderNovoOrcamento() {
     configurarEventoSalvar();
 }
 
+// Adicionar itens ao orçamento
+
 function configurarEventosItens() {
 
     const btnAdicionar = document.getElementById("btnAdicionarItem");
@@ -89,6 +91,8 @@ function configurarEventosItens() {
         document.getElementById("valorItem").value = "";
     });
 }
+
+// Atualizar lista de itens
 
 function atualizarListaItens() {
 
@@ -126,12 +130,20 @@ function atualizarListaItens() {
         </table>
     `;
 
-    lista.innerHTML = html;
+lista.innerHTML = html;
 
-    document.getElementById("resumoValores").innerHTML = `
-        <h3>Total: R$ ${total.toFixed(2)}</h3>
-    `;
+document.getElementById("resumoValores").innerHTML = `
+    <h3>Total: R$ ${total.toLocaleString(
+        "pt-BR",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    )}</h3>
+`;
 }
+
+//evento de salvar orçamento
 
 function configurarEventoSalvar() {
 
@@ -140,6 +152,8 @@ function configurarEventoSalvar() {
     btnSalvar.addEventListener("click", salvarOrcamento);
 
 }
+
+// Salvar orçamento
 
 function salvarOrcamento() {
 
@@ -202,8 +216,10 @@ function salvarOrcamento() {
 
     itensOrcamento = [];
 
-    renderNovoOrcamento();
+    renderDashboard();
 }
+
+//orçamentos em andamento
 
 function renderOrcamentosEmAndamento() {
 
@@ -269,6 +285,8 @@ function renderOrcamentosEmAndamento() {
     content.innerHTML = html;
 }
 
+// Finalizar orçamento
+
 function finalizarOrcamento(id) {
 
     const confirmar = confirm(
@@ -299,8 +317,10 @@ function finalizarOrcamento(id) {
 
     alert("Orçamento finalizado com sucesso!");
 
-    renderOrcamentosEmAndamento();
+    renderDashboard();
 }
+
+// Visualizar orçamento
 
 function visualizarOrcamento(id) {
 
@@ -405,5 +425,74 @@ function visualizarOrcamento(id) {
             </div>
 
         </div>
+    `;
+}
+
+//dashboard
+
+function renderDashboard() {
+
+    const content = document.querySelector(".content");
+
+    const orcamentos =
+        JSON.parse(localStorage.getItem("orcamentos"))
+        || [];
+
+    const totalOrcamentos = orcamentos.length;
+
+    const emAndamento = orcamentos.filter(
+        item => item.status === "Em Andamento"
+    ).length;
+
+    const finalizados = orcamentos.filter(
+        item => item.status === "Finalizado"
+    ).length;
+
+    const valorTotal = orcamentos.reduce(
+        (soma, item) => soma + item.total,
+        0
+    );
+
+    content.innerHTML = `
+        <header>
+            <h1>Dashboard</h1>
+            <p>Resumo geral dos orçamentos.</p>
+        </header>
+
+        <section class="cards">
+
+            <div class="card">
+                <h3>Total</h3>
+                <span>${totalOrcamentos}</span>
+            </div>
+
+            <div class="card">
+                <h3>Em Andamento</h3>
+                <span>${emAndamento}</span>
+            </div>
+
+            <div class="card">
+                <h3>Finalizados</h3>
+                <span>${finalizados}</span>
+            </div>
+
+            <div class="card">
+                <h3>Valor Total</h3>
+                <span>
+                    R$ ${valorTotal.toFixed(2)}
+                </span>
+            </div>
+
+        </section>
+
+        <section class="welcome">
+
+            <h2>Visão Geral</h2>
+
+            <p>
+                Sistema de gerenciamento de orçamentos da Oficina O Paulista.
+            </p>
+
+        </section>
     `;
 }
