@@ -57,6 +57,7 @@ function renderNovoOrcamento() {
     `;
 
     configurarEventosItens();
+    configurarEventoSalvar();
 }
 
 function configurarEventosItens() {
@@ -130,4 +131,76 @@ function atualizarListaItens() {
     document.getElementById("resumoValores").innerHTML = `
         <h3>Total: R$ ${total.toFixed(2)}</h3>
     `;
+}
+
+function configurarEventoSalvar() {
+
+    const btnSalvar = document.getElementById("btnSalvar");
+
+    btnSalvar.addEventListener("click", salvarOrcamento);
+
+}
+
+function salvarOrcamento() {
+
+    const cliente =
+        document.getElementById("cliente").value;
+
+    const telefone =
+        document.getElementById("telefone").value;
+
+    const veiculo =
+        document.getElementById("veiculo").value;
+
+    const placa =
+        document.getElementById("placa").value;
+
+    const ano =
+        document.getElementById("ano").value;
+
+    if (
+        !cliente ||
+        !veiculo ||
+        itensOrcamento.length === 0
+    ) {
+        alert(
+            "Preencha cliente, veículo e adicione ao menos um item."
+        );
+        return;
+    }
+
+    const total = itensOrcamento.reduce(
+        (soma, item) => soma + item.valor,
+        0
+    );
+
+    const orcamento = {
+        id: Date.now(),
+        cliente,
+        telefone,
+        veiculo,
+        placa,
+        ano,
+        status: "Em Andamento",
+        itens: [...itensOrcamento],
+        total
+    };
+
+    const orcamentos =
+        JSON.parse(
+            localStorage.getItem("orcamentos")
+        ) || [];
+
+    orcamentos.push(orcamento);
+
+    localStorage.setItem(
+        "orcamentos",
+        JSON.stringify(orcamentos)
+    );
+
+    alert("Orçamento salvo com sucesso!");
+
+    itensOrcamento = [];
+
+    renderNovoOrcamento();
 }
