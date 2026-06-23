@@ -271,6 +271,14 @@ function renderOrcamentosEmAndamento() {
 
 function finalizarOrcamento(id) {
 
+    const confirmar = confirm(
+        "Deseja realmente finalizar este orçamento?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
     const orcamentos =
         JSON.parse(localStorage.getItem("orcamentos"))
         || [];
@@ -278,7 +286,6 @@ function finalizarOrcamento(id) {
     const atualizado = orcamentos.map(orcamento => {
 
         if (orcamento.id === id) {
-
             orcamento.status = "Finalizado";
         }
 
@@ -289,6 +296,8 @@ function finalizarOrcamento(id) {
         "orcamentos",
         JSON.stringify(atualizado)
     );
+
+    alert("Orçamento finalizado com sucesso!");
 
     renderOrcamentosEmAndamento();
 }
@@ -303,13 +312,98 @@ function visualizarOrcamento(id) {
         item => item.id === id
     );
 
-    alert(
-        `
-Cliente: ${orcamento.cliente}
+    if (!orcamento) {
+        alert("Orçamento não encontrado.");
+        return;
+    }
 
-Veículo: ${orcamento.veiculo}
+    let itensHTML = "";
 
-Total: R$ ${orcamento.total.toFixed(2)}
-        `
-    );
+    orcamento.itens.forEach(item => {
+
+        itensHTML += `
+            <tr>
+                <td>${item.descricao}</td>
+                <td>${item.categoria}</td>
+                <td>R$ ${item.valor.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    const content = document.querySelector(".content");
+
+    content.innerHTML = `
+        <header>
+            <h1>Detalhes do Orçamento</h1>
+            <p>Visualização completa do orçamento.</p>
+        </header>
+
+        <div class="detalhes-container">
+
+            <div class="detalhes-card">
+
+                <h3>Cliente</h3>
+
+                <p><strong>Nome:</strong> ${orcamento.cliente}</p>
+
+                <p><strong>Telefone:</strong> ${orcamento.telefone}</p>
+
+            </div>
+
+            <div class="detalhes-card">
+
+                <h3>Veículo</h3>
+
+                <p><strong>Modelo:</strong> ${orcamento.veiculo}</p>
+
+                <p><strong>Placa:</strong> ${orcamento.placa}</p>
+
+                <p><strong>Ano:</strong> ${orcamento.ano}</p>
+
+            </div>
+
+            <div class="detalhes-card">
+
+                <h3>Itens do Orçamento</h3>
+
+                <table class="tabela-itens">
+
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${itensHTML}
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="detalhes-card">
+
+                <h2>
+                    Total: R$ ${orcamento.total.toFixed(2)}
+                </h2>
+
+            </div>
+
+            <div class="acoes-detalhes">
+
+                <button onclick="renderOrcamentosEmAndamento()">
+                    Voltar
+                </button>
+
+                <button onclick="finalizarOrcamento(${orcamento.id})">
+                    Finalizar
+                </button>
+
+            </div>
+
+        </div>
+    `;
 }
