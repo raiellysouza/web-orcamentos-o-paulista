@@ -204,3 +204,112 @@ function salvarOrcamento() {
 
     renderNovoOrcamento();
 }
+
+function renderOrcamentosEmAndamento() {
+
+    const content = document.querySelector(".content");
+
+    const orcamentos =
+        JSON.parse(localStorage.getItem("orcamentos"))
+        || [];
+
+    const emAndamento = orcamentos.filter(
+        orcamento => orcamento.status === "Em Andamento"
+    );
+
+    let html = `
+        <header>
+            <h1>Orçamentos em Andamento</h1>
+            <p>Gerencie os orçamentos ativos.</p>
+        </header>
+    `;
+
+    if (emAndamento.length === 0) {
+
+        html += `
+            <div class="card-lista">
+                Nenhum orçamento encontrado.
+            </div>
+        `;
+
+    } else {
+
+        emAndamento.forEach(orcamento => {
+
+            html += `
+                <div class="card-lista">
+
+                    <h3>${orcamento.cliente}</h3>
+
+                    <p>
+                        ${orcamento.veiculo}
+                    </p>
+
+                    <p>
+                        Total: R$ ${orcamento.total.toFixed(2)}
+                    </p>
+
+                    <button
+                        onclick="visualizarOrcamento(${orcamento.id})"
+                    >
+                        Ver Detalhes
+                    </button>
+
+                    <button
+                        onclick="finalizarOrcamento(${orcamento.id})"
+                    >
+                        Finalizar
+                    </button>
+
+                </div>
+            `;
+        });
+    }
+
+    content.innerHTML = html;
+}
+
+function finalizarOrcamento(id) {
+
+    const orcamentos =
+        JSON.parse(localStorage.getItem("orcamentos"))
+        || [];
+
+    const atualizado = orcamentos.map(orcamento => {
+
+        if (orcamento.id === id) {
+
+            orcamento.status = "Finalizado";
+        }
+
+        return orcamento;
+    });
+
+    localStorage.setItem(
+        "orcamentos",
+        JSON.stringify(atualizado)
+    );
+
+    renderOrcamentosEmAndamento();
+}
+
+function visualizarOrcamento(id) {
+
+    const orcamentos =
+        JSON.parse(localStorage.getItem("orcamentos"))
+        || [];
+
+    const orcamento = orcamentos.find(
+        item => item.id === id
+    );
+
+    alert(
+        `
+Cliente: ${orcamento.cliente}
+
+Veículo: ${orcamento.veiculo}
+
+Total: R$ ${orcamento.total.toFixed(2)}
+        `
+    );
+}
