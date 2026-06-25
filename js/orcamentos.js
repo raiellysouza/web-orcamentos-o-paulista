@@ -1,4 +1,5 @@
 let itensOrcamento = [];
+let currentEditIndex = null;
 
 function escapeHtml(str) {
     if (str === undefined || str === null) return '';
@@ -32,6 +33,39 @@ function ensurePageSpace(doc, y, lineHeight = 8, bottomMargin = 20) {
         return 20;
     }
     return y;
+}
+
+function telefoneMaskHandler(e) {
+    const input = e.target;
+    let v = (input.value || '').replace(/\D/g, '');
+    v = v.slice(0, 11);
+    if (v.length <= 2) {
+        input.value = v ? `(${v}` : '';
+        return;
+    }
+    const area = v.slice(0,2);
+    const rest = v.slice(2);
+    if (rest.length === 0) {
+        input.value = `(${area}`;
+        return;
+    }
+    if (rest.length === 1) {
+        input.value = `(${area}) ${rest}`;
+        return;
+    }
+    if (rest.length <= 5) {
+        input.value = `(${area}) ${rest.slice(0,1)} ${rest.slice(1)}`;
+        return;
+    }
+    input.value = `(${area}) ${rest.slice(0,1)} ${rest.slice(1,5)}-${rest.slice(5,9)}`;
+}
+
+function placaHandler(e) {
+    const input = e.target;
+    if (!input) return;
+    let v = (input.value || '').toUpperCase();
+    v = v.replace(/[^A-Z0-9]/g, '');
+    input.value = v;
 }
 
 function renderNovoOrcamento() {
@@ -83,6 +117,9 @@ function renderNovoOrcamento() {
                 <h3>Total: R$ 0,00</h3>
             </div>
 
+            <h3>Observações</h3>
+            <textarea id="observacoes" rows="4" placeholder="Observações do orçamento"></textarea>
+
             <button id="btnSalvar">
                 Salvar Orçamento
             </button>
@@ -90,11 +127,16 @@ function renderNovoOrcamento() {
         </div>
     `;
 
+    const tel = document.getElementById('telefone');
+    if (tel) tel.addEventListener('input', telefoneMaskHandler);
+    const placa = document.getElementById('placa');
+    if (placa) placa.addEventListener('input', placaHandler);
+
     configurarEventosItens();
     configurarEventoSalvar();
 }
 
-// Adicionar itens ao orçamento
+//adiciona itens ao orcamento
 
 function configurarEventosItens() {
 
@@ -104,31 +146,34 @@ function configurarEventosItens() {
 
     btnAdicionar.addEventListener("click", () => {
 
-        const descricao = document.getElementById("descricaoItem").value;
-        const categoria = document.getElementById("categoriaItem").value;
-        const valor = parseFloat(
-            document.getElementById("valorItem").value
-        );
+        const descricaoEl = document.getElementById("descricaoItem");
+        const categoriaEl = document.getElementById("categoriaItem");
+        const valorEl = document.getElementById("valorItem");
+        const descricao = descricaoEl ? descricaoEl.value.trim() : '';
+        const categoria = categoriaEl ? categoriaEl.value : '';
+        const valor = Number.parseFloat(valorEl ? valorEl.value : 0);
 
-        if (!descricao || isNaN(valor)) {
+        if (!descricao || Number.isNaN(valor)) {
             alert("Preencha descrição e valor.");
             return;
         }
 
-        itensOrcamento.push({
-            descricao,
-            categoria,
-            valor
-        });
+        if (currentEditIndex === null) {
+            itensOrcamento.push({ descricao, categoria, valor });
+        } else {
+            itensOrcamento[currentEditIndex] = { descricao, categoria, valor };
+            currentEditIndex = null;
+            btnAdicionar.textContent = 'Adicionar Item';
+        }
 
         atualizarListaItens();
 
-        document.getElementById("descricaoItem").value = "";
-        document.getElementById("valorItem").value = "";
+        if (descricaoEl) descricaoEl.value = "";
+        if (valorEl) valorEl.value = "";
     });
 }
 
-// Atualizar lista de itens
+//atualizar itens
 
 function atualizarListaItens() {
 
@@ -142,6 +187,7 @@ function atualizarListaItens() {
                     <th>Descrição</th>
                     <th>Categoria</th>
                     <th>Valor</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -149,7 +195,7 @@ function atualizarListaItens() {
 
     let total = 0;
 
-    itensOrcamento.forEach(item => {
+    itensOrcamento.forEach((item, index) => {
 
         total += item.valor;
 
@@ -157,7 +203,11 @@ function atualizarListaItens() {
             <tr>
                 <td>${escapeHtml(item.descricao)}</td>
                 <td>${escapeHtml(item.categoria)}</td>
-                <td>R$ ${item.valor.toFixed(2)}</td>
+                <td>R$ ${Number(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>
+                    <button type="button" onclick="editarItem(${index})">Editar</button>
+                    <button type="button" onclick="removerItem(${index})">Remover</button>
+                </td>
             </tr>
         `;
     });
@@ -181,6 +231,26 @@ function atualizarListaItens() {
         )}</h3>
     `;
     }
+}
+
+function editarItem(index) {
+    if (typeof index !== 'number') index = Number(index);
+    if (!Number.isInteger(index)) return;
+    const item = itensOrcamento[index];
+    if (!item) return;
+    const descricaoEl = document.getElementById('descricaoItem');
+    const categoriaEl = document.getElementById('categoriaItem');
+    const valorEl = document.getElementById('valorItem');
+    const btnAdicionar = document.getElementById('btnAdicionarItem');
+    if (descricaoEl) descricaoEl.value = item.descricao;
+    if (categoriaEl) {
+        for (let i = 0; i < categoriaEl.options.length; i++) {
+            if (categoriaEl.options[i].value === item.categoria) { categoriaEl.selectedIndex = i; break; }
+        }
+    }
+    if (valorEl) valorEl.value = item.valor;
+    currentEditIndex = index;
+    if (btnAdicionar) btnAdicionar.textContent = 'Salvar Edição';
 }
 
 //evento de salvar orçamento
@@ -213,6 +283,8 @@ function salvarOrcamento() {
     const ano =
         document.getElementById("ano").value;
 
+    const observacoes = (document.getElementById("observacoes") || {}).value || '';
+
     if (
         !cliente ||
         !veiculo ||
@@ -236,28 +308,144 @@ function salvarOrcamento() {
         veiculo,
         placa,
         ano,
+        observacoes,
         status: "Em Andamento",
         itens: [...itensOrcamento],
         total
     };
 
-    const orcamentos = loadOrcamentos();
-
-    orcamentos.push(orcamento);
-
-    localStorage.setItem(
-        "orcamentos",
-        JSON.stringify(orcamentos)
-    );
-
-    alert("Orçamento salvo com sucesso!");
-
-    itensOrcamento = [];
-
-    renderDashboard();
+    openPreviewModal(orcamento);
 }
 
-//orçamentos em andamento
+function openPreviewModal(orcamento) {
+    const existing = document.getElementById('previewModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'previewModal';
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+
+    const title = document.createElement('h2');
+    title.className = 'modal-title';
+    title.textContent = 'Pré-visualização do Orçamento';
+    box.appendChild(title);
+
+    const info = document.createElement('div');
+    info.className = 'modal-info';
+    info.innerHTML = `
+        <p><strong>Cliente:</strong> ${escapeHtml(orcamento.cliente)}</p>
+        <p><strong>Telefone:</strong> ${escapeHtml(orcamento.telefone)}</p>
+        <p><strong>Veículo:</strong> ${escapeHtml(orcamento.veiculo)}</p>
+        <p><strong>Placa:</strong> ${escapeHtml(orcamento.placa)}</p>
+        <p><strong>Ano:</strong> ${escapeHtml(orcamento.ano)}</p>
+        <p><strong>Observações:</strong><br>${escapeHtml(orcamento.observacoes || '')}</p>
+    `;
+    box.appendChild(info);
+
+    const table = document.createElement('table');
+    table.className = 'modal-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th style="text-align:right">Valor</th>
+            </tr>
+        </thead>
+    `;
+    const tbody = document.createElement('tbody');
+    (orcamento.itens || []).forEach(item => {
+        const tr = document.createElement('tr');
+        const tdDesc = document.createElement('td');
+        tdDesc.textContent = item.descricao || '';
+        const tdCat = document.createElement('td');
+        tdCat.textContent = item.categoria || '';
+        const tdVal = document.createElement('td');
+        tdVal.textContent = `R$ ${Number(item.valor).toLocaleString('pt-BR', { minimumFractionDigits:2 })}`;
+        tdVal.className = 'modal-valor';
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdCat);
+        tr.appendChild(tdVal);
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    box.appendChild(table);
+
+    const totalDiv = document.createElement('div');
+    totalDiv.className = 'modal-total';
+    totalDiv.innerHTML = `<strong>Total: R$ ${Number(orcamento.total || 0).toLocaleString('pt-BR', { minimumFractionDigits:2 })}</strong>`;
+    box.appendChild(totalDiv);
+
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+
+    const back = document.createElement('button');
+    back.className = 'btn-back';
+    back.textContent = 'Voltar';
+    back.onclick = () => { modal.remove(); };
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn-save';
+    saveBtn.textContent = 'Salvar';
+    saveBtn.onclick = () => {
+        const list = loadOrcamentos();
+        orcamento.id = Date.now();
+        list.push(orcamento);
+        try { localStorage.setItem('orcamentos', JSON.stringify(list)); } catch (e) { console.warn(e); }
+        itensOrcamento = [];
+        modal.remove();
+        renderDashboard();
+    };
+
+    const pdfBtn = document.createElement('button');
+    pdfBtn.className = 'btn-pdf';
+    pdfBtn.textContent = 'Gerar PDF';
+    pdfBtn.onclick = () => { gerarPDFFromObject(orcamento); };
+
+    actions.appendChild(back);
+    actions.appendChild(saveBtn);
+    actions.appendChild(pdfBtn);
+    box.appendChild(actions);
+
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+}
+
+function gerarPDFFromObject(orcamento) {
+    const jspdf = globalThis.jspdf; if (!jspdf) return;
+    const { jsPDF } = jspdf;
+    if (!jsPDF) return;
+    const doc = new jsPDF();
+    let y = 20;
+    doc.setFontSize(18);
+    doc.text('O PAULISTA', 20, y);
+    y += 10;
+    doc.setFontSize(14);
+    doc.text('ORÇAMENTO AUTOMOTIVO', 20, y);
+    y += 12;
+    doc.setFontSize(12);
+    doc.text(`Cliente: ${orcamento.cliente}`, 20, y); y += 8;
+    doc.text(`Telefone: ${orcamento.telefone}`, 20, y); y += 8;
+    doc.text(`Veículo: ${orcamento.veiculo}`, 20, y); y += 8;
+    doc.text(`Placa: ${orcamento.placa}`, 20, y); y += 8;
+    doc.text(`Ano: ${orcamento.ano}`, 20, y); y += 12;
+    doc.text('Observações:', 20, y); y += 8;
+    const obs = (orcamento.observacoes || '').split('\n');
+    obs.forEach(line => { y = ensurePageSpace(doc, y); doc.text(escapeHtml(line), 20, y); y += 6; });
+    y += 8;
+    doc.text('ITENS', 20, y); y += 8;
+    (orcamento.itens || []).forEach(item => { y = ensurePageSpace(doc, y); doc.text(`${item.descricao} - ${item.categoria}`, 20, y); doc.text(`R$ ${Number(item.valor).toLocaleString('pt-BR', { minimumFractionDigits:2 })}`, 160, y, { align: 'right' }); y += 8; });
+    y += 8; y = ensurePageSpace(doc, y); doc.setFontSize(14); doc.text(`TOTAL: R$ ${Number(orcamento.total || 0).toLocaleString('pt-BR', { minimumFractionDigits:2 })}`, 20, y);
+    const name = `ORCAMENTO_${sanitizeFilename((orcamento.cliente || '').toUpperCase())}.pdf`;
+    doc.save(name);
+}
+
+//orcamentos em andamento
 
 function renderOrcamentosEmAndamento() {
 
@@ -438,6 +626,14 @@ function visualizarOrcamento(id) {
 
             <div class="detalhes-card">
 
+                <h3>Observações</h3>
+
+                <p>${escapeHtml(orcamento.observacoes || '')}</p>
+
+            </div>
+
+            <div class="detalhes-card">
+
                 <h2>
                     Total: R$ ${orcamento.total.toFixed(2)}
                 </h2>
@@ -496,33 +692,31 @@ function renderDashboard() {
     );
 
     content.innerHTML = `
-        <header>
+        <header class="page-header">
             <h1>Dashboard</h1>
             <p>Resumo geral dos orçamentos.</p>
         </header>
 
-        <section class="cards">
+        <section class="dashboard-cards" aria-label="Resumo dos orçamentos">
 
-            <div class="card">
+            <div class="dashboard-card card">
                 <h3>Total</h3>
-                <span>${totalOrcamentos}</span>
+                <span class="metric total-count">${totalOrcamentos}</span>
             </div>
 
-            <div class="card">
+            <div class="dashboard-card card">
                 <h3>Em Andamento</h3>
-                <span>${emAndamento}</span>
+                <span class="metric andamento-count">${emAndamento}</span>
             </div>
 
-            <div class="card">
+            <div class="dashboard-card card">
                 <h3>Finalizados</h3>
-                <span>${finalizados}</span>
+                <span class="metric finalizados-count">${finalizados}</span>
             </div>
 
-            <div class="card">
+            <div class="dashboard-card card value-card">
                 <h3>Valor Total</h3>
-                <span>
-                    R$ ${valorTotal.toFixed(2)}
-                </span>
+                <span class="metric valor-total">R$ ${valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
 
         </section>
@@ -627,7 +821,7 @@ function excluirOrcamento(id) {
     renderDashboard();
 }
 
-// Gerar PDF do orçamento
+//fgeara pdf do orncamento
 
 async function gerarPDF(id) {
 
@@ -641,7 +835,10 @@ async function gerarPDF(id) {
         return;
     }
 
-    const { jsPDF } = window.jspdf;
+    const jspdf = globalThis.jspdf;
+    if (!jspdf) return;
+    const { jsPDF } = jspdf;
+    if (!jsPDF) return;
 
     const doc = new jsPDF();
 

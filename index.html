@@ -30,28 +30,33 @@
 
         </aside>
 
-        <main id="main-content" class="content">
+        <main id="main-content" class="content dashboard-container" role="main">
 
-            <header>
+            <header class="page-header">
                 <h1>Dashboard</h1>
                 <p>Gerencie os orçamentos da oficina.</p>
             </header>
 
-            <section class="cards" aria-label="Resumo dos orçamentos">
+            <section class="dashboard-cards" aria-label="Resumo dos orçamentos">
 
-                <div class="card">
+                <div class="dashboard-card card">
                     <h3>Total</h3>
-                    <span aria-live="polite">0</span>
+                    <span class="metric total-count" aria-live="polite">0</span>
                 </div>
 
-                <div class="card">
+                <div class="dashboard-card card">
                     <h3>Em Andamento</h3>
-                    <span aria-live="polite">0</span>
+                    <span class="metric andamento-count" aria-live="polite">0</span>
                 </div>
 
-                <div class="card">
+                <div class="dashboard-card card">
                     <h3>Finalizados</h3>
-                    <span aria-live="polite">0</span>
+                    <span class="metric finalizados-count" aria-live="polite">0</span>
+                </div>
+
+                <div class="dashboard-card card value-card">
+                    <h3>Valor Total</h3>
+                    <span class="metric valor-total">R$ 0,00</span>
                 </div>
 
             </section>
@@ -67,9 +72,22 @@
 
             </section>
 
+            <section class="form-section" aria-hidden="true"></section>
+
+            <section class="detalhes-section" aria-hidden="true"></section>
+
+            <section class="itens-section" aria-hidden="true"></section>
+
+            <div id="global-actions" class="actions-container" aria-hidden="true"></div>
+
         </main>
 
     </div>
+
+    <div id="feedback" class="feedback-container" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="modalContainer" aria-hidden="true"></div>
+    <div id="confirmModal" aria-hidden="true"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     <script src="js/app.js"></script>
